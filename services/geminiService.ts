@@ -1,10 +1,26 @@
 
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+let ai: GoogleGenAI | null = null;
+const apiKey = process.env.API_KEY;
+
+if (apiKey) {
+  try {
+    ai = new GoogleGenAI({ apiKey: apiKey });
+  } catch (error) {
+    console.warn("Failed to initialize GoogleGenAI", error);
+  }
+} else {
+  console.warn("Gemini API Key is missing. AI features will be disabled.");
+}
+
+
 
 export async function getToolDescription(toolName: string) {
+  if (!ai) return null;
   try {
+
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `Buat deskripsi pemasaran yang sangat menarik, persuasif, dan profesional dalam Bahasa Indonesia untuk tool AI bernama "${toolName}". Fokus pada manfaat untuk kreator digital Indonesia, gunakan gaya bahasa yang modern tapi mudah dimengerti pemula.`,
@@ -16,8 +32,11 @@ export async function getToolDescription(toolName: string) {
   }
 }
 
+
 export async function askSupport(question: string) {
+  if (!ai) return "Sistem bantuan AI sedang tidak aktif. Silakan hubungi admin.";
   try {
+
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: question,
