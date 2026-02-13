@@ -64,9 +64,7 @@ const SubscriptionSettingsManager: React.FC<SubscriptionSettingsProps> = ({ show
     useEffect(() => {
         const fetchTools = async () => {
             try {
-                const apiBaseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                    ? 'http://127.0.0.1:8788'
-                    : '';
+                const apiBaseUrl = '';
 
                 // Try public API first (no auth required)
                 let apiResponse = await fetch(`${apiBaseUrl}/api/public/tools`, {
@@ -337,7 +335,7 @@ const SubscriptionSettingsManager: React.FC<SubscriptionSettingsProps> = ({ show
                                         setTestingConnection(true);
                                         setConnectionStatus('idle');
                                         try {
-                                            const resp = await fetch('http://127.0.0.1:8788/health');
+                                            const resp = await fetch('/health');
                                             const data = await resp.json();
                                             if (data.ok && data.tokopayReady) {
                                                 setConnectionStatus('success');

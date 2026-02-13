@@ -41,9 +41,8 @@ export interface Category {
 
 // Get admin API base URL
 const getAdminApiUrl = () => {
-    const isDev = typeof window !== 'undefined' &&
-        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-    return isDev ? 'http://127.0.0.1:8788' : '';
+    // Always use relative path to leverage Vite proxy in dev and same-domain in prod
+    return '';
 };
 
 // Get all categories (use admin API to bypass RLS)
@@ -345,9 +344,10 @@ export const getCatalog = async (): Promise<CatalogItem[]> => {
 
     // ── Layer 1: Try public /api/catalog endpoint (production) or admin API (local dev) ──
     try {
+        // Use relative path for both local (proxy) and prod
         const endpoint = isLocalDev
-            ? `${apiBaseUrl}/api/admin/tools`
-            : `${apiBaseUrl}/api/catalog`;
+            ? `/api/admin/tools`
+            : `/api/catalog`;
 
         const response = await fetch(endpoint, {
             method: 'GET',

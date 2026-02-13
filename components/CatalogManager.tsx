@@ -95,8 +95,9 @@ const CatalogManager: React.FC<CatalogManagerProps> = ({ showToast }) => {
         const loadIframeHosts = async () => {
             try {
                 const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                const baseUrl = isLocalDev ? 'http://127.0.0.1:8788' : '';
-                const response = await fetch(`${baseUrl}/api/admin/settings?key=iframe_allowed_hosts`, {
+                // Use relative path to leverage Vite proxy
+                const apiUrl = '';
+                const response = await fetch(`${apiUrl}/api/admin/iframe-policy`, {
                     headers: { 'Content-Type': 'application/json' }
                 });
                 if (response.ok) {
@@ -177,13 +178,15 @@ const CatalogManager: React.FC<CatalogManagerProps> = ({ showToast }) => {
     const allowedIframeHosts = getIframeAllowedHostPatterns();
 
     // Save iframe domains to Supabase settings
-    const saveIframeDomains = async (domains: string[]) => {
+    const saveIframeDomains = async (domains: string[], domainToDelete?: string) => {
         setIframeSaving(true);
         try {
             const session = await getSession();
-            const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            const baseUrl = isLocalDev ? 'http://127.0.0.1:8788' : '';
-            const response = await fetch(`${baseUrl}/api/admin/settings`, {
+            const isLocalDev = window.location.hostname === 'localhost';
+            // Use relative path to leverage Vite proxy
+            const apiUrl = '';
+
+            const response = await fetch(`${apiUrl}/api/admin/settings`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
