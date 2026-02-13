@@ -1,0 +1,32 @@
+@property --k { /* needed to animate --k */
+	syntax: '<number>';
+	initial-value: 0;
+	/* for better perf, set to false 
+	 * if it's not important to be inherited */
+	inherits: false
+}
+
+/* don't do height: 100vh on body, do this */
+html, body { display: grid }
+html { height: 100% }
+body { background: #000 }
+
+/* functionally the same as a style element, 
+ * best to take it out of document flow */
+svg[height='0'][aria-hidden='true'] { position: fixed }
+
+h1 { /* no pseudo needed */
+	place-self: center; /* along both axes */
+	background: 
+		linear-gradient(90deg, 
+				hsl(calc(var(--k)*1turn), 95%, 65%), 
+				hsl(calc(var(--k)*1turn + 90deg), 95%, 65%)) text;
+	color: #0000;
+	font: 900 clamp(.875em, 7.25vw, 5em) sans-serif;
+	filter: url(#glow);
+	text-align: center;
+	text-transform: uppercase;
+	animation: k 4s linear infinite
+}
+
+@keyframes k { to { --k: 1 } }

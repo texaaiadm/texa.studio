@@ -1,0 +1,190 @@
+content.js:4 [TEXA] Content script loaded at: loading
+content.js:93 Executing inline script violates the following Content Security Policy directive 'script-src 'self' 'wasm-unsafe-eval' 'inline-speculation-rules' http://localhost:* http://127.0.0.1:* chrome-extension://144ff5c8-ba2f-4b32-a825-fd29cf0700bc/'. Either the 'unsafe-inline' keyword, a hash ('sha256-upqR6rTWmeWj96g5WTXKpHCs4nXjoi8GEG3Hw4PCZAg='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked.
+injectScript @ content.js:93
+(anonymous) @ content.js:99
+content.js:94 [TEXA] Script injected
+content.js:242 [TEXA] Content script initialized v1.3.2
+(index):64 cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation
+(anonymous) @ (index):64
+(anonymous) @ (index):64
+content.js:159 [TEXA] No user data
+react-dom_client.js?v=07d6180f:20103 Download the React DevTools for a better development experience: https://react.dev/link/react-devtools
+supabaseAuthService.ts:353 Auth state change: INITIAL_SESSION undefined
+content.js:177 [TEXA CS] Ping received
+iframePolicy.ts:37 ✅ Loaded 1 iframe hosts from Admin API
+supabaseCatalogService.ts:367 ✅ Loaded 10 tools via Admin API
+supabaseCatalogService.ts:367 ✅ Loaded 10 tools via Admin API
+@supabase_supabase-js.js?v=07d6180f:11219  GET https://odivixmsdxjyqeobalzv.supabase.co/rest/v1/footer_settings?select=*&limit=1 406 (Not Acceptable)
+(anonymous) @ @supabase_supabase-js.js?v=07d6180f:11219
+(anonymous) @ @supabase_supabase-js.js?v=07d6180f:11233
+await in (anonymous)
+then @ @supabase_supabase-js.js?v=07d6180f:309
+content.js:159 [TEXA] No user data
+App.tsx:375 Supabase taking too long, loading app with cached user if available
+(anonymous) @ App.tsx:375
+setTimeout
+(anonymous) @ App.tsx:373
+react_stack_bottom_frame @ react-dom_client.js?v=07d6180f:18567
+runWithFiberInDEV @ react-dom_client.js?v=07d6180f:997
+commitHookEffectListMount @ react-dom_client.js?v=07d6180f:9411
+commitHookPassiveMountEffects @ react-dom_client.js?v=07d6180f:9465
+commitPassiveMountOnFiber @ react-dom_client.js?v=07d6180f:11040
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=07d6180f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=07d6180f:11066
+flushPassiveEffects @ react-dom_client.js?v=07d6180f:13150
+(anonymous) @ react-dom_client.js?v=07d6180f:12776
+performWorkUntilDeadline @ react-dom_client.js?v=07d6180f:36
+<App>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=07d6180f:247
+(anonymous) @ index.tsx:55
+content.js:159 [TEXA] No user data
+supabaseAuthService.ts:266 Cross-Origin-Opener-Policy policy would block the window.closed call.
+(anonymous) @ supabaseAuthService.ts:266
+setInterval
+user @ supabaseAuthService.ts:264
+signInWithGoogle @ supabaseAuthService.ts:199
+await in signInWithGoogle
+handleGoogleLogin @ Login.tsx:90
+executeDispatch @ react-dom_client.js?v=07d6180f:13622
+runWithFiberInDEV @ react-dom_client.js?v=07d6180f:997
+processDispatchQueue @ react-dom_client.js?v=07d6180f:13658
+(anonymous) @ react-dom_client.js?v=07d6180f:14071
+batchedUpdates$1 @ react-dom_client.js?v=07d6180f:2626
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=07d6180f:13763
+dispatchEvent @ react-dom_client.js?v=07d6180f:16784
+dispatchDiscreteEvent @ react-dom_client.js?v=07d6180f:16765
+<button>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=07d6180f:247
+Login @ Login.tsx:176
+react_stack_bottom_frame @ react-dom_client.js?v=07d6180f:18509
+renderWithHooks @ react-dom_client.js?v=07d6180f:5654
+updateFunctionComponent @ react-dom_client.js?v=07d6180f:7475
+beginWork @ react-dom_client.js?v=07d6180f:8525
+runWithFiberInDEV @ react-dom_client.js?v=07d6180f:997
+performUnitOfWork @ react-dom_client.js?v=07d6180f:12561
+workLoopConcurrentByScheduler @ react-dom_client.js?v=07d6180f:12557
+renderRootConcurrent @ react-dom_client.js?v=07d6180f:12539
+performWorkOnRoot @ react-dom_client.js?v=07d6180f:11766
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=07d6180f:13505
+performWorkUntilDeadline @ react-dom_client.js?v=07d6180f:36
+<Login>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=07d6180f:247
+AppContent @ App.tsx:226
+react_stack_bottom_frame @ react-dom_client.js?v=07d6180f:18509
+renderWithHooks @ react-dom_client.js?v=07d6180f:5654
+updateFunctionComponent @ react-dom_client.js?v=07d6180f:7475
+beginWork @ react-dom_client.js?v=07d6180f:8525
+runWithFiberInDEV @ react-dom_client.js?v=07d6180f:997
+performUnitOfWork @ react-dom_client.js?v=07d6180f:12561
+workLoopConcurrentByScheduler @ react-dom_client.js?v=07d6180f:12557
+renderRootConcurrent @ react-dom_client.js?v=07d6180f:12539
+performWorkOnRoot @ react-dom_client.js?v=07d6180f:11766
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=07d6180f:13505
+performWorkUntilDeadline @ react-dom_client.js?v=07d6180f:36
+<AppContent>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=07d6180f:247
+App @ App.tsx:440
+react_stack_bottom_frame @ react-dom_client.js?v=07d6180f:18509
+renderWithHooks @ react-dom_client.js?v=07d6180f:5654
+updateFunctionComponent @ react-dom_client.js?v=07d6180f:7475
+beginWork @ react-dom_client.js?v=07d6180f:8525
+runWithFiberInDEV @ react-dom_client.js?v=07d6180f:997
+performUnitOfWork @ react-dom_client.js?v=07d6180f:12561
+workLoopSync @ react-dom_client.js?v=07d6180f:12424
+renderRootSync @ react-dom_client.js?v=07d6180f:12408
+performWorkOnRoot @ react-dom_client.js?v=07d6180f:11766
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=07d6180f:13505
+performWorkUntilDeadline @ react-dom_client.js?v=07d6180f:36
+<App>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=07d6180f:247
+(anonymous) @ index.tsx:55
+supabaseAuthService.ts:266 Cross-Origin-Opener-Policy policy would block the window.closed call.
+(anonymous) @ supabaseAuthService.ts:266
+setInterval
+user @ supabaseAuthService.ts:264
+signInWithGoogle @ supabaseAuthService.ts:199
+await in signInWithGoogle
+handleGoogleLogin @ Login.tsx:90
+executeDispatch @ react-dom_client.js?v=07d6180f:13622
+runWithFiberInDEV @ react-dom_client.js?v=07d6180f:997
+processDispatchQueue @ react-dom_client.js?v=07d6180f:13658
+(anonymous) @ react-dom_client.js?v=07d6180f:14071
+batchedUpdates$1 @ react-dom_client.js?v=07d6180f:2626
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=07d6180f:13763
+dispatchEvent @ react-dom_client.js?v=07d6180f:16784
+dispatchDiscreteEvent @ react-dom_client.js?v=07d6180f:16765
+<button>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=07d6180f:247
+Login @ Login.tsx:176
+react_stack_bottom_frame @ react-dom_client.js?v=07d6180f:18509
+renderWithHooks @ react-dom_client.js?v=07d6180f:5654
+updateFunctionComponent @ react-dom_client.js?v=07d6180f:7475
+beginWork @ react-dom_client.js?v=07d6180f:8525
+runWithFiberInDEV @ react-dom_client.js?v=07d6180f:997
+performUnitOfWork @ react-dom_client.js?v=07d6180f:12561
+workLoopConcurrentByScheduler @ react-dom_client.js?v=07d6180f:12557
+renderRootConcurrent @ react-dom_client.js?v=07d6180f:12539
+performWorkOnRoot @ react-dom_client.js?v=07d6180f:11766
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=07d6180f:13505
+performWorkUntilDeadline @ react-dom_client.js?v=07d6180f:36
+<Login>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=07d6180f:247
+AppContent @ App.tsx:226
+react_stack_bottom_frame @ react-dom_client.js?v=07d6180f:18509
+renderWithHooks @ react-dom_client.js?v=07d6180f:5654
+updateFunctionComponent @ react-dom_client.js?v=07d6180f:7475
+beginWork @ react-dom_client.js?v=07d6180f:8525
+runWithFiberInDEV @ react-dom_client.js?v=07d6180f:997
+performUnitOfWork @ react-dom_client.js?v=07d6180f:12561
+workLoopConcurrentByScheduler @ react-dom_client.js?v=07d6180f:12557
+renderRootConcurrent @ react-dom_client.js?v=07d6180f:12539
+performWorkOnRoot @ react-dom_client.js?v=07d6180f:11766
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=07d6180f:13505
+performWorkUntilDeadline @ react-dom_client.js?v=07d6180f:36
+<AppContent>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=07d6180f:247
+App @ App.tsx:440
+react_stack_bottom_frame @ react-dom_client.js?v=07d6180f:18509
+renderWithHooks @ react-dom_client.js?v=07d6180f:5654
+updateFunctionComponent @ react-dom_client.js?v=07d6180f:7475
+beginWork @ react-dom_client.js?v=07d6180f:8525
+runWithFiberInDEV @ react-dom_client.js?v=07d6180f:997
+performUnitOfWork @ react-dom_client.js?v=07d6180f:12561
+workLoopSync @ react-dom_client.js?v=07d6180f:12424
+renderRootSync @ react-dom_client.js?v=07d6180f:12408
+performWorkOnRoot @ react-dom_client.js?v=07d6180f:11766
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=07d6180f:13505
+performWorkUntilDeadline @ react-dom_client.js?v=07d6180f:36
+<App>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=07d6180f:247
+(anonymous) @ index.tsx:55
+supabaseAuthService.ts:353 Auth state change: SIGNED_IN texa.ai.adm@gmail.com
+content.js:177 [TEXA CS] Ping received
+userToolsService.ts:69 [userToolsService] Got 7 active tools for user
+supabaseCatalogService.ts:367 ✅ Loaded 10 tools via Admin API
+@supabase_supabase-js.js?v=07d6180f:11219  GET https://odivixmsdxjyqeobalzv.supabase.co/rest/v1/footer_settings?select=*&limit=1 406 (Not Acceptable)
+(anonymous) @ @supabase_supabase-js.js?v=07d6180f:11219
+(anonymous) @ @supabase_supabase-js.js?v=07d6180f:11233
+await in (anonymous)
+then @ @supabase_supabase-js.js?v=07d6180f:309
+supabaseCatalogService.ts:367 ✅ Loaded 10 tools via Admin API
+content.js:177 [TEXA CS] Ping received
+content.js:156 [TEXA] User synced: texa.ai.adm@gmail.com
+content.js:187 [TEXA CS] OPEN_TOOL received: 33845136-c386-4c0c-9826-bd7d9a981c20
+content.js:210 [TEXA CS] Background response: {success: true, tabId: 2131487473, cookiesInjected: 26, targetUrl: 'https://chatgpt.com/', reusedTab: true}
+content.js:156 [TEXA] User synced: texa.ai.adm@gmail.com
+userToolsService.ts:69 [userToolsService] Got 7 active tools for user
+Marketplace.tsx:151 [Marketplace] Window focused - refreshing tool accesses
+supabaseAuthService.ts:353 Auth state change: SIGNED_IN texa.ai.adm@gmail.com
+userToolsService.ts:69 [userToolsService] Got 7 active tools for user
+supabaseCatalogService.ts:367 ✅ Loaded 10 tools via Admin API
+supabaseCatalogService.ts:367 ✅ Loaded 10 tools via Admin API
+content.js:177 [TEXA CS] Ping received
+content.js:156 [TEXA] User synced: texa.ai.adm@gmail.com
+userToolsService.ts:69 [userToolsService] Got 7 active tools for user
+content.js:156 [TEXA] User synced: texa.ai.adm@gmail.com
+supabaseCatalogService.ts:367 ✅ Loaded 10 tools via Admin API
+supabaseCatalogService.ts:367 ✅ Loaded 10 tools via Admin API
+content.js:156 [TEXA] User synced: texa.ai.adm@gmail.com
+userToolsService.ts:69 [userToolsService] Got 7 active tools for user
+content.js:156 [TEXA] User synced: texa.ai.adm@gmail.com

@@ -1,0 +1,851 @@
+// Supabase Catalog Service - Mengelola AI Tools di Supabase
+// Service untuk CRUD operasi catalog tools
+
+import { supabase, SupabaseTool } from './supabaseService';
+import { AITool } from '../types';
+import { getSession } from './supabaseAuthService';
+
+// Extended interface for catalog document (compatible with existing code)
+export interface CatalogItem extends AITool {
+    createdAt?: string;
+    updatedAt?: string;
+    createdBy?: string;
+    order?: number;
+    individualPrice?: number | null;
+    individualDuration?: number;
+    individualDiscount?: number | null;
+}
+
+// Default categories (fallback)
+export const DEFAULT_CATEGORIES = [
+    'Menulis & Riset',
+    'Desain & Art',
+    'Desain Grafis',
+    'Marketing',
+    'Coding & Teks',
+    'Produktivitas'
+];
+
+// Category Interface
+export interface Category {
+    id: string;
+    name: string;
+    order: number;
+    createdAt?: string;
+    updatedAt?: string;
+}
+
+// ============================================
+// CATEGORY FUNCTIONS (Supabase)
+// ============================================
+
+// Get admin API base URL
+const getAdminApiUrl = () => {
+    const isDev = typeof window !== 'undefined' &&
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    return isDev ? 'http://127.0.0.1:8788' : '';
+};
+
+// Get all categories (use admin API to bypass RLS)
+export const getCategories = async (): Promise<Category[]> => {
+    try {
+        // Try admin API first (uses service role key)
+        const apiUrl = getAdminApiUrl();
+        const response = await fetch(`${apiUrl}/api/admin/categories`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.data) {
+                console.log('[categories] Loaded', result.data.length, 'via admin API');
+                return result.data.map((cat: any) => ({
+                    id: cat.id,
+                    name: cat.name,
+                    order: cat.order || 0,
+                    createdAt: cat.created_at,
+                    updatedAt: cat.updated_at
+                }));
+            }
+        }
+
+        // Fallback to direct Supabase (may fail due to RLS)
+        console.log('[categories] Admin API failed, trying direct Supabase...');
+        const { data, error } = await supabase
+            .from('categories')
+            .select('*')
+            .order('order', { ascending: true });
+
+        if (error) {
+            console.error('Error getting categories:', error);
+            return DEFAULT_CATEGORIES.map((name, index) => ({
+                id: `default-${index}`,
+                name,
+                order: index
+            }));
+        }
+
+        if (!data || data.length === 0) {
+            // Return default categories immediately
+            return DEFAULT_CATEGORIES.map((name, index) => ({
+                id: `default-${index}`,
+                name,
+                order: index
+            }));
+        }
+
+        return data.map(cat => ({
+            id: cat.id,
+            name: cat.name,
+            order: cat.order || 0,
+            createdAt: cat.created_at,
+            updatedAt: cat.updated_at
+        }));
+    } catch (error) {
+        console.error('Error getting categories:', error);
+        return DEFAULT_CATEGORIES.map((name, index) => ({
+            id: `default-${index}`,
+            name,
+            order: index
+        }));
+    }
+};
+
+// Subscribe to categories (polling untuk Supabase)
+export const subscribeToCategories = (callback: (categories: Category[]) => void) => {
+    let stopped = false;
+
+    const fetchCategories = async () => {
+        if (stopped) return;
+        const categories = await getCategories();
+        callback(categories);
+    };
+
+    // Initial fetch
+    void fetchCategories();
+
+    // Poll every 10 seconds
+    const intervalId = setInterval(fetchCategories, 10000);
+
+    return () => {
+        stopped = true;
+        clearInterval(intervalId);
+    };
+};
+
+// Seed default categories
+export const seedDefaultCategories = async (): Promise<boolean> => {
+    try {
+        const categories = DEFAULT_CATEGORIES.map((name, index) => ({
+            name,
+            order: index,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        }));
+
+        const { error } = await supabase
+            .from('categories')
+            .insert(categories);
+
+        if (error) {
+            console.error('Error seeding categories:', error);
+            return false;
+        }
+
+        console.log('Default categories seeded successfully');
+        return true;
+    } catch (error) {
+        console.error('Error seeding categories:', error);
+        return false;
+    }
+};
+
+// Add category (use admin API to bypass RLS)
+export const addCategory = async (name: string): Promise<string | null> => {
+    try {
+        const apiUrl = getAdminApiUrl();
+        const response = await fetch(`${apiUrl}/api/admin/categories`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name.trim() })
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.data) {
+                console.log('[categories] Added via admin API:', name);
+                return result.data.id || result.data;
+            }
+        }
+
+        // Fallback to direct Supabase (may fail due to RLS)
+        console.log('[categories] Admin API failed, trying direct Supabase...');
+        const { data: existing } = await supabase
+            .from('categories')
+            .select('order')
+            .order('order', { ascending: false })
+            .limit(1);
+
+        const maxOrder = existing?.[0]?.order ?? -1;
+
+        const { data, error } = await supabase
+            .from('categories')
+            .insert({
+                name: name.trim(),
+                order: maxOrder + 1,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            })
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Error adding category:', error);
+            return null;
+        }
+
+        return data?.id || null;
+    } catch (error) {
+        console.error('Error adding category:', error);
+        return null;
+    }
+};
+
+// Update category
+export const updateCategory = async (id: string, name: string): Promise<boolean> => {
+    try {
+        const { error } = await supabase
+            .from('categories')
+            .update({
+                name: name.trim(),
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', id);
+
+        if (error) {
+            console.error('Error updating category:', error);
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Error updating category:', error);
+        return false;
+    }
+};
+
+// Delete category
+export const deleteCategory = async (id: string): Promise<boolean> => {
+    try {
+        const { error } = await supabase
+            .from('categories')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error('Error deleting category:', error);
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Error deleting category:', error);
+        return false;
+    }
+};
+
+// ============================================
+// CATALOG FUNCTIONS (Supabase)
+// ============================================
+
+// Convert Supabase tool to CatalogItem format
+const toLocalCatalogItem = (tool: any): CatalogItem => {
+    const api = tool.api_url ?? tool.apiUrl ?? '';
+    const ev = tool.embed_video_url ?? tool.embedVideoUrl ?? '';
+    const isYT = typeof api === 'string' && (api.includes('youtube.com') || api.includes('youtu.be'));
+    return {
+        id: tool.id,
+        name: tool.name,
+        description: tool.description || '',
+        category: tool.category || '',
+        imageUrl: tool.image_url || '',
+        targetUrl: tool.tool_url || '',
+        openMode: tool.open_mode || 'new_tab',
+        cookiesData: tool.cookies_data ?? tool.cookiesData ?? '',
+        apiUrl: api,
+        embedVideoUrl: ev || (isYT ? api : ''),
+        status: tool.is_active ? 'active' : 'inactive',
+        priceMonthly: tool.price_monthly || 0,
+        order: tool.sort_order || 0,
+        createdAt: tool.created_at,
+        updatedAt: tool.updated_at,
+        createdBy: tool.created_by,
+        price7Days: tool.price_7_days ?? 0,
+        price14Days: tool.price_14_days ?? 0,
+        price30Days: tool.price_30_days ?? 0
+    };
+};
+
+// Convert CatalogItem to Supabase format
+const toSupabaseTool = (item: Partial<CatalogItem>): any => {
+    const converted: any = {};
+    if (item.name !== undefined) converted.name = item.name;
+    if (item.description !== undefined) converted.description = item.description;
+    if (item.category !== undefined) converted.category = item.category;
+    if (item.imageUrl !== undefined) converted.image_url = item.imageUrl;
+    if (item.targetUrl !== undefined) converted.tool_url = item.targetUrl;
+    if (item.openMode !== undefined) converted.open_mode = item.openMode;
+    if (item.cookiesData !== undefined) converted.cookies_data = item.cookiesData;
+    if (item.apiUrl !== undefined) converted.api_url = item.apiUrl;
+    if (item.embedVideoUrl !== undefined) converted.embed_video_url = item.embedVideoUrl;
+    if (item.status !== undefined) converted.is_active = item.status === 'active';
+    if (item.priceMonthly !== undefined) converted.price_monthly = item.priceMonthly;
+    if (item.order !== undefined) converted.sort_order = item.order;
+    if (item.createdBy !== undefined) converted.created_by = item.createdBy;
+    return converted;
+};
+
+// Map raw tool data (from any source) to CatalogItem format
+const mapToolToCatalogItem = (tool: any): CatalogItem => {
+    const api = tool.api_url ?? tool.apiUrl ?? '';
+    const ev = tool.embed_video_url ?? tool.embedVideoUrl ?? '';
+    const isYT = typeof api === 'string' && (api.includes('youtube.com') || api.includes('youtu.be'));
+    return {
+        id: tool.id,
+        name: tool.name,
+        description: tool.description || '',
+        category: tool.category || '',
+        imageUrl: tool.image_url || tool.imageUrl || '',
+        targetUrl: tool.tool_url || tool.targetUrl || '',
+        openMode: tool.open_mode || tool.openMode || 'new_tab',
+        cookiesData: tool.cookies_data ?? tool.cookiesData ?? '',
+        apiUrl: api,
+        embedVideoUrl: ev || (isYT ? api : ''),
+        status: tool.is_active ? 'active' : (tool.status || 'active'),
+        priceMonthly: tool.price_monthly || tool.priceMonthly || 0,
+        order: tool.sort_order || tool.order || 0,
+        createdAt: tool.created_at || tool.createdAt,
+        updatedAt: tool.updated_at || tool.updatedAt,
+        createdBy: tool.created_by || tool.createdBy,
+        price7Days: tool.price_7_days ?? tool.price7Days ?? 0,
+        price14Days: tool.price_14_days ?? tool.price14Days ?? 0,
+        price30Days: tool.price_30_days ?? tool.price30Days ?? 0,
+        individualPrice: tool.individual_price ?? tool.individualPrice ?? null,
+        individualDuration: tool.individual_duration ?? tool.individualDuration ?? 7,
+        individualDiscount: tool.individual_discount ?? tool.individualDiscount ?? null
+    };
+};
+
+// Get all catalog items - Multi-layer fallback for maximum reliability
+export const getCatalog = async (): Promise<CatalogItem[]> => {
+    const apiBaseUrl = getApiBaseUrl();
+    const isLocalDev = typeof window !== 'undefined' &&
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+    // ── Layer 1: Try public /api/catalog endpoint (production) or admin API (local dev) ──
+    try {
+        const endpoint = isLocalDev
+            ? `${apiBaseUrl}/api/admin/tools`
+            : `${apiBaseUrl}/api/catalog`;
+
+        const response = await fetch(endpoint, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Dev-Bypass': 'true'
+            }
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            // /api/catalog returns array directly, /api/admin/tools wraps in { success, data }
+            const toolsArray = Array.isArray(result)
+                ? result
+                : (result.success && Array.isArray(result.data) ? result.data : null);
+
+            if (toolsArray && toolsArray.length > 0) {
+                console.log(`✅ Loaded ${toolsArray.length} tools via ${isLocalDev ? 'Admin' : 'Public'} API`);
+                return toolsArray.map(mapToolToCatalogItem);
+            }
+        }
+    } catch (e) {
+        console.warn('[getCatalog] API endpoint failed:', e);
+    }
+
+    // ── Layer 2: Try admin API as fallback (production only) ──
+    if (!isLocalDev) {
+        try {
+            const response = await fetch(`${apiBaseUrl}/api/admin/tools`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Dev-Bypass': 'true'
+                }
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success && Array.isArray(result.data) && result.data.length > 0) {
+                    console.log(`✅ Loaded ${result.data.length} tools via Admin API fallback`);
+                    return result.data.map(mapToolToCatalogItem);
+                }
+            }
+        } catch (e) {
+            console.warn('[getCatalog] Admin API fallback failed:', e);
+        }
+    }
+
+    // ── Layer 3: Direct Supabase client query ──
+    try {
+        console.log('[getCatalog] API unavailable, trying direct Supabase...');
+        const { data, error } = await supabase
+            .from('tools')
+            .select('*')
+            .order('sort_order', { ascending: true });
+
+        if (!error && data && data.length > 0) {
+            console.log(`✅ Loaded ${data.length} tools via direct Supabase`);
+            return data.map(toLocalCatalogItem);
+        }
+        if (error) {
+            console.warn('[getCatalog] Supabase client error:', error.message);
+        }
+    } catch (e) {
+        console.warn('[getCatalog] Supabase client failed:', e);
+    }
+
+    // ── Layer 4: Supabase REST API direct fetch (bypasses client issues) ──
+    try {
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+        if (supabaseUrl && supabaseKey) {
+            console.log('[getCatalog] Trying Supabase REST API directly...');
+            const restResponse = await fetch(
+                `${supabaseUrl}/rest/v1/tools?order=sort_order.asc&select=*`,
+                {
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            if (restResponse.ok) {
+                const tools = await restResponse.json();
+                if (Array.isArray(tools) && tools.length > 0) {
+                    console.log(`✅ Loaded ${tools.length} tools via Supabase REST API`);
+                    return tools.map(toLocalCatalogItem);
+                }
+            }
+        }
+    } catch (e) {
+        console.warn('[getCatalog] Supabase REST API failed:', e);
+    }
+
+    console.error('[getCatalog] All data sources failed, returning empty');
+    return [];
+};
+
+// Subscribe to catalog (polling)
+export const subscribeToCatalog = (callback: (items: CatalogItem[]) => void) => {
+    let stopped = false;
+
+    const fetchCatalog = async () => {
+        if (stopped) return;
+        const items = await getCatalog();
+        callback(items);
+    };
+
+    // Initial fetch
+    void fetchCatalog();
+
+    // Poll every 7 seconds
+    const intervalId = setInterval(fetchCatalog, 7000);
+
+    return () => {
+        stopped = true;
+        clearInterval(intervalId);
+    };
+};
+
+// Retry helper with exponential backoff
+const retryWithBackoff = async <T,>(
+    fn: () => Promise<T>,
+    maxRetries = 3,
+    baseDelay = 500 // Reduced from 1000ms for faster recovery
+): Promise<T> => {
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+            return await fn();
+        } catch (error: any) {
+            const isLastAttempt = attempt === maxRetries - 1;
+
+            // Special handling for AbortError
+            if (error?.name === 'AbortError') {
+                if (isLastAttempt) {
+                    console.error('❌ AbortError persisted after retries');
+                    throw error;
+                }
+                const delay = baseDelay * Math.pow(2, attempt);
+                console.log(`⚠️ AbortError detected, retry ${attempt + 1}/${maxRetries} after ${delay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                continue;
+            }
+
+            // Other errors
+            if (isLastAttempt) {
+                throw error;
+            }
+            const delay = baseDelay * Math.pow(2, attempt);
+            console.log(`⚠️ Retry attempt ${attempt + 1}/${maxRetries} after ${delay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+    }
+    throw new Error('Max retries exceeded');
+};
+
+// Get single catalog item using direct REST API to avoid AbortError
+export const getCatalogItem = async (id: string): Promise<CatalogItem | null> => {
+    try {
+        return await retryWithBackoff(async () => {
+            const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
+            const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+
+            console.log('🔍 Fetching tool via REST API:', id);
+
+            // Use direct fetch instead of Supabase client to avoid AbortError
+            const response = await fetch(
+                `${SUPABASE_URL}/rest/v1/tools?id=eq.${id}&select=*`,
+                {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    }
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (!data || data.length === 0) {
+                console.log('⚠️ Tool not found:', id);
+                return null;
+            }
+
+            console.log('✅ Tool fetched successfully:', id);
+            return toLocalCatalogItem(data[0]);
+        });
+    } catch (error) {
+        console.error('❌ getCatalogItem failed after retries:', error);
+        return null;
+    }
+};
+
+// API Base URL for admin server
+const getApiBaseUrl = () => {
+    // Return empty string to use relative path (proxied by Vite)
+    // This avoids CORS issues and ensures we go through the proxy
+    return '';
+};
+
+// Add new catalog item - Uses admin API to bypass RLS
+export const addCatalogItem = async (
+    item: Omit<CatalogItem, 'id' | 'createdAt' | 'updatedAt'>,
+    createdBy?: string
+): Promise<string | null> => {
+    try {
+        const session = await getSession();
+        const apiBaseUrl = getApiBaseUrl();
+
+        return await retryWithBackoff(async () => {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+
+            try {
+                const response = await fetch(`${apiBaseUrl}/api/admin/tools`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Dev-Bypass': 'true',
+                        'Authorization': `Bearer ${session?.access_token || ''}`
+                    },
+                    body: JSON.stringify({
+                        name: item.name,
+                        description: item.description,
+                        category: item.category,
+                        imageUrl: item.imageUrl,
+                        targetUrl: item.targetUrl,
+                        openMode: item.openMode || 'new_tab',
+                        cookiesData: item.cookiesData,
+                        apiUrl: item.apiUrl,
+                        embedVideoUrl: item.embedVideoUrl,
+                        status: item.status,
+                        priceMonthly: item.priceMonthly,
+                        order: item.order,
+                        createdBy: createdBy || 'admin'
+                    }),
+                    signal: controller.signal
+                });
+
+                if (!response.ok) {
+                    const errText = await response.text();
+                    throw new Error(`Server returned ${response.status}: ${errText}`);
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    console.log('✅ Tool added via admin API:', result.data?.name);
+                    return result.id || result.data?.id || 'success';
+                } else {
+                    console.error('Error adding catalog item:', result.message);
+                    throw new Error(result.message || 'Add failed');
+                }
+            } finally {
+                clearTimeout(timeoutId);
+            }
+        });
+    } catch (error) {
+        console.error('Error adding catalog item:', error);
+        return null;
+    }
+};
+
+// Update catalog item - Uses admin API to bypass RLS
+export const updateCatalogItem = async (
+    id: string,
+    updates: Partial<Omit<CatalogItem, 'id' | 'createdAt'>>
+): Promise<boolean> => {
+    try {
+        const session = await getSession();
+        const apiBaseUrl = getApiBaseUrl();
+
+        return await retryWithBackoff(async () => {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+
+            try {
+                const response = await fetch(`${apiBaseUrl}/api/admin/tools/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Dev-Bypass': 'true',
+                        'Authorization': `Bearer ${session?.access_token || ''}`
+                    },
+                    body: JSON.stringify({
+                        name: updates.name,
+                        description: updates.description,
+                        category: updates.category,
+                        imageUrl: updates.imageUrl,
+                        targetUrl: updates.targetUrl,
+                        openMode: updates.openMode,
+                        cookiesData: updates.cookiesData,
+                        apiUrl: updates.apiUrl,
+                        embedVideoUrl: updates.embedVideoUrl,
+                        status: updates.status,
+                        priceMonthly: updates.priceMonthly,
+                        order: updates.order,
+                        // Multi-tier pricing fields
+                        price7Days: (updates as any).price7Days,
+                        price14Days: (updates as any).price14Days,
+                        price30Days: (updates as any).price30Days
+                    }),
+                    signal: controller.signal
+                });
+
+                if (!response.ok) {
+                    const errText = await response.text();
+                    throw new Error(`Server returned ${response.status}: ${errText}`);
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    console.log('✅ Tool updated via admin API');
+                    return true;
+                } else {
+                    console.error('Error updating catalog item:', result.message);
+                    throw new Error(result.message || 'Update failed');
+                }
+            } finally {
+                clearTimeout(timeoutId);
+            }
+        });
+
+
+    } catch (error) {
+        console.error('Error updating catalog item:', error);
+        return false;
+    }
+};
+
+// Delete catalog item - Uses admin API to bypass RLS
+export const deleteCatalogItem = async (id: string): Promise<boolean> => {
+    try {
+        const session = await getSession();
+        const apiBaseUrl = getApiBaseUrl();
+
+        const response = await fetch(`${apiBaseUrl}/api/admin/tools/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Dev-Bypass': 'true',
+                'Authorization': `Bearer ${session?.access_token || ''}`
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            console.log('✅ Tool deleted via admin API');
+            return true;
+        } else {
+            console.error('Error deleting catalog item:', result.message);
+            return false;
+        }
+    } catch (error) {
+        console.error('Error deleting catalog item:', error);
+        return false;
+    }
+};
+
+// Toggle item status
+export const toggleCatalogStatus = async (id: string, currentStatus: 'active' | 'inactive'): Promise<boolean> => {
+    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+    return updateCatalogItem(id, { status: newStatus });
+};
+
+// Reorder catalog items
+export const reorderCatalogItems = async (items: CatalogItem[]): Promise<boolean> => {
+    try {
+        const updates = items.map((item, index) =>
+            supabase
+                .from('tools')
+                .update({ sort_order: index, updated_at: new Date().toISOString() })
+                .eq('id', item.id)
+        );
+        await Promise.all(updates);
+        return true;
+    } catch (error) {
+        console.error('Error reordering catalog:', error);
+        return false;
+    }
+};
+
+// Format price to Rupiah
+export const formatPrice = (price: number): string => {
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+    }).format(price);
+};
+
+// Seed initial catalog data
+export const seedCatalogData = async (): Promise<boolean> => {
+    try {
+        const existing = await getCatalog();
+        if (existing.length > 0) {
+            console.log('Catalog already has data, skipping seed');
+            return false;
+        }
+
+        const initialData = [
+            {
+                name: 'ChatGPT Plus (Shared)',
+                description: 'Akses penuh ke GPT-4o, DALL·E 3, dan fitur analisis data tercanggih.',
+                category: 'Menulis & Riset',
+                image_url: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=400',
+                tool_url: 'https://chat.openai.com',
+                is_active: true,
+                is_premium: true,
+                price_monthly: 45000,
+                sort_order: 0
+            },
+            {
+                name: 'Midjourney Pro',
+                description: 'Generate gambar AI kualitas tinggi tanpa batas dengan mode cepat.',
+                category: 'Desain & Art',
+                image_url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=400',
+                tool_url: 'https://midjourney.com',
+                is_active: true,
+                is_premium: true,
+                price_monthly: 75000,
+                sort_order: 1
+            },
+            {
+                name: 'Canva Pro Teams',
+                description: 'Buka jutaan aset premium dan hapus background otomatis.',
+                category: 'Desain Grafis',
+                image_url: 'https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&q=80&w=400',
+                tool_url: 'https://canva.com',
+                is_active: true,
+                is_premium: true,
+                price_monthly: 15000,
+                sort_order: 2
+            },
+            {
+                name: 'Jasper AI Business',
+                description: 'Bikin konten sosmed dan iklan 10x lebih cepat dengan AI.',
+                category: 'Marketing',
+                image_url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=400',
+                tool_url: 'https://jasper.ai',
+                is_active: true,
+                is_premium: true,
+                price_monthly: 99000,
+                sort_order: 3
+            },
+            {
+                name: 'Claude 3.5 Sonnet',
+                description: 'AI cerdas untuk coding dan penulisan kreatif dengan konteks luas.',
+                category: 'Coding & Teks',
+                image_url: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&q=80&w=400',
+                tool_url: 'https://claude.ai',
+                is_active: true,
+                is_premium: true,
+                price_monthly: 55000,
+                sort_order: 4
+            },
+            {
+                name: 'Grammarly Premium',
+                description: 'Cek tata bahasa Inggris otomatis dan kirim email tanpa typo.',
+                category: 'Produktivitas',
+                image_url: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&q=80&w=400',
+                tool_url: 'https://grammarly.com',
+                is_active: true,
+                is_premium: true,
+                price_monthly: 25000,
+                sort_order: 5
+            }
+        ].map(item => ({
+            ...item,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            created_by: 'system'
+        }));
+
+        const { error } = await supabase
+            .from('tools')
+            .insert(initialData);
+
+        if (error) {
+            console.error('Error seeding catalog:', error);
+            return false;
+        }
+
+        console.log('Catalog seeded successfully!');
+        return true;
+    } catch (error) {
+        console.error('Error seeding catalog:', error);
+        return false;
+    }
+};
