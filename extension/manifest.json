@@ -21,6 +21,8 @@
         "http://127.0.0.1:8787/*",
         "https://labs.google/*",
         "https://firestore.googleapis.com/*",
+        "https://*.texa.studio/*",
+        "https://texa.studioa.vercel.app/*",
         "<all_urls>"
     ],
     "background": {
@@ -30,7 +32,9 @@
         {
             "matches": [
                 "http://localhost:3000/*",
-                "http://127.0.0.1:3000/*"
+                "http://127.0.0.1:3000/*",
+                "https://*.texa.studio/*",
+                "https://texa.studioa.vercel.app/*"
             ],
             "js": [
                 "content.js"
@@ -46,7 +50,8 @@
             "matches": [
                 "http://localhost:3000/*",
                 "http://127.0.0.1:3000/*",
-                "https://*.texa.studio/*"
+                "https://*.texa.studio/*",
+                "https://texa.studioa.vercel.app/*"
             ]
         }
     ],

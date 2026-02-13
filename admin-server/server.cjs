@@ -659,7 +659,7 @@ const handleTestConnection = async (req, res) => {
 
 // ==================== HTTP Server ====================
 
-const server = http.createServer(async (req, res) => {
+const requestHandler = async (req, res) => {
   const origin = req.headers.origin;
   if (origin) {
     res.setHeader('access-control-allow-origin', '*');
@@ -1955,16 +1955,22 @@ ALTER TABLE tools ADD COLUMN IF NOT EXISTS price_30_days INTEGER DEFAULT 0;`,
     return json(res, 500, { success: false, message: 'Server error' });
   }
 
-  return json(res, 404, { success: false, message: 'Not found' });
-});
+  // Serve static files (optional, for uploaded images if any)
+  // In Vercel/Supabase architecture, we should use Supabase Storage.
+  // This fallback is only for local dev static files if strictly needed.
+  return json(res, 404, { success: false, error: 'Not Found' });
+};
 
-const port = Number(process.env.ADMIN_PORT || 8788);
-const host = process.env.ADMIN_HOST || '127.0.0.1';
+// Create server for local dev (or if run directly)
+const server = http.createServer(requestHandler);
 
-server.listen(port, host, () => {
-  console.log(`\n🚀 Admin + TokoPay Server running at http://${host}:${port}`);
-  console.log(`   Backend: Supabase`);
-  console.log(`   TokoPay API: http://${host}:${port}/api/tokopay/create-order`);
-  console.log(`   Health: http://${host}:${port}/health`);
-  console.log(`   Test DB: http://${host}:${port}/test-connection\n`);
-});
+if (require.main === module) {
+  const PORT = process.env.PORT || 8788;
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`\n🚀 Admin Server running on port ${PORT}`);
+    console.log(`   Local:   http://localhost:${PORT}`);
+    console.log(`   Health:  http://localhost:${PORT}/health`);
+  });
+}
+
+module.exports = requestHandler;

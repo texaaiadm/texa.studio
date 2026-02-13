@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('btnLogin').addEventListener('click', () => {
       chrome.tabs.create({
-        url: 'http://localhost:3000/#/login'
+        url: 'https://texa.studio/#/login'
       });
     });
   } else {
@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('btnDashboard').addEventListener('click', () => {
       chrome.tabs.create({
-        url: 'http://localhost:3000/#/'
+        url: 'https://texa.studio/#/'
       });
     });
 
