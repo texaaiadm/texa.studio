@@ -242,10 +242,7 @@ const AppContent: React.FC<{
           } />
 
           <Route path="/admin" element={
-            // DEV MODE: Allow admin access on localhost without authentication
-            (import.meta.env.DEV || window.location.hostname === 'localhost') ? (
-              <AdminDashboard />
-            ) : user?.role === 'ADMIN' ? (
+            user?.role === 'ADMIN' ? (
               <AdminDashboard />
             ) : (
               user ? (
