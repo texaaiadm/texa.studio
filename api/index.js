@@ -1,5 +1,5 @@
-import requestHandler from '../admin-server/server.cjs';
+const requestHandler = require('../admin-server/server.cjs');
 
-export default function (req, res) {
+module.exports = (req, res) => {
     return requestHandler(req, res);
-}
+};
