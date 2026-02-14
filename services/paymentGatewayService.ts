@@ -3,24 +3,8 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const getEnv = (key: string, viteKey: string) => {
-    // Safe check for process.env (Node.js)
-    if (typeof process !== 'undefined' && process.env && process.env[key]) {
-        return process.env[key];
-    }
-    // Safe check for import.meta.env (Vite)
-    try {
-        if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[viteKey]) {
-            return import.meta.env[viteKey];
-        }
-    } catch (e) {
-        // Ignore errors accessing import.meta
-    }
-    return '';
-};
-
-const SUPABASE_URL = getEnv('SUPABASE_URL', 'VITE_SUPABASE_URL');
-const SUPABASE_SERVICE_ROLE_KEY = getEnv('SUPABASE_SERVICE_ROLE_KEY', 'VITE_SUPABASE_ANON_KEY'); // Fallback to Anon Key if Service Role missing in client
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
 
 const supabase = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
     ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
@@ -321,8 +305,8 @@ export async function getTokopayConfig(): Promise<TokopayConfig> {
 
     // Fallback to environment variables
     return {
-        merchantId: getEnv('TOKOPAY_MERCHANT_ID', 'VITE_TOKOPAY_MERCHANT_ID') || 'M250828KEAYY483',
-        secretKey: getEnv('TOKOPAY_SECRET_KEY', 'VITE_TOKOPAY_SECRET_KEY') || 'b3bb79b23b82ed33a54927dbaac95d8a70e19de7f5d47a613d1db4d32776125c',
+        merchantId: process.env.TOKOPAY_MERCHANT_ID || 'M250828KEAYY483',
+        secretKey: process.env.TOKOPAY_SECRET_KEY || 'b3bb79b23b82ed33a54927dbaac95d8a70e19de7f5d47a613d1db4d32776125c',
         webhookIp: '178.128.104.179'
     };
 }

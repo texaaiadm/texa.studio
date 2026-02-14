@@ -7,8 +7,6 @@
   <title>TEXA-Ai | Akses AI Premium Indonesia Tanpa Ribet</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    window.process = { env: {} };
-    window.global = window;
     tailwind.config = {
       darkMode: 'class'
     }
@@ -1108,6 +1106,18 @@
       }
     }
   </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.12.0",
+    "@google/genai": "https://esm.sh/@google/genai@^1.35.0",
+    "gsap": "https://esm.sh/gsap@^3.12.5"
+  }
+}
+</script>
 </head>
 
 <body class="bg-grid">
