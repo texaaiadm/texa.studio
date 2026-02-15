@@ -30,7 +30,7 @@ loadEnvFile(path.resolve(process.cwd(), '.env'));
 // Supabase configuration
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kaXZpeG1zZHhqeXFlb2JhbHp2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTQ2Nzk3MiwiZXhwIjoyMDg1MDQzOTcyfQ.LQV6svthX4imiW_b5-xum0RsdgQuxu8i-L80FmYVp0U';
 
 // TokoPay Configuration
 const TOKOPAY_CONFIG = {
