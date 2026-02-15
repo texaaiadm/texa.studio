@@ -85,12 +85,20 @@ export const subscribeToUsers = (callback: (users: TexaUser[]) => void) => {
         try {
             // Try Admin API first (bypasses RLS)
             const apiBaseUrl = getApiBaseUrl();
+            const token = await getAuthToken(); // Reuse existing helper
+
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json',
+                'X-Dev-Bypass': 'true'
+            };
+
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
             const response = await fetch(`${apiBaseUrl}/api/admin/users`, {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Dev-Bypass': 'true'
-                }
+                headers
             });
 
             if (response.ok) {

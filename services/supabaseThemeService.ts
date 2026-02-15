@@ -146,12 +146,23 @@ export const getThemeSettings = async (): Promise<ThemeSettings> => {
     try {
         // Try Admin API first (bypasses RLS)
         const apiBaseUrl = getApiBaseUrl();
+
+        // Get session token for auth
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
+
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+            'X-Dev-Bypass': 'true'
+        };
+
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
         const response = await fetch(`${apiBaseUrl}/api/admin/settings?key=theme_config`, {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Dev-Bypass': 'true'
-            }
+            headers
         });
 
         if (response.ok) {
@@ -232,12 +243,23 @@ export const saveThemeSettings = async (
 
         // Try Admin API first (bypasses RLS)
         const apiBaseUrl = getApiBaseUrl();
+
+        // Get session token for auth
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
+
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+            'X-Dev-Bypass': 'true'
+        };
+
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
         const response = await fetch(`${apiBaseUrl}/api/admin/settings`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Dev-Bypass': 'true'
-            },
+            headers,
             body: JSON.stringify({
                 key: 'theme_config',
                 value: merged
