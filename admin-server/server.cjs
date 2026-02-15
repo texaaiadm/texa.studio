@@ -808,6 +808,29 @@ const requestHandler = async (req, res) => {
     }
   }
 
+  // ==================== Public Catalog API (No Auth) ====================
+  // GET public catalog tools
+  if (req.method === 'GET' && url.pathname === '/api/catalog') {
+    try {
+      console.log('🔍 [public] Fetching catalog tools...');
+      const response = await supabaseFetch('/rest/v1/tools?is_active=eq.true&select=*&order=sort_order.asc');
+
+      if (response.ok) {
+        const tools = await response.json();
+        console.log(`✅ [public] Serving ${tools.length} active tools`);
+        // Return array directly as expected by frontend
+        return json(res, 200, tools);
+      } else {
+        const errText = await response.text();
+        console.error('❌ [public] Error fetching tools:', errText);
+        return json(res, 500, { error: 'Failed to fetch catalog' });
+      }
+    } catch (e) {
+      console.error('❌ [public] Catalog error:', e);
+      return json(res, 500, { error: 'Internal server error' });
+    }
+  }
+
   // ==================== Settings API (for iframe domains, theme, etc.) ====================
 
   // GET setting by key
