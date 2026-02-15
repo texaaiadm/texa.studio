@@ -173,11 +173,18 @@ const ColorBends: React.FC<ColorBendsProps> = ({
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
 
-    const renderer = new THREE.WebGLRenderer({
-      antialias: false,
-      powerPreference: 'high-performance',
-      alpha: true
-    });
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        antialias: false,
+        powerPreference: 'high-performance',
+        alpha: true
+      });
+    } catch (e) {
+      console.warn('WebGL not supported or disabled, disabling ColorBends', e);
+      return;
+    }
+
     rendererRef.current = renderer;
     (renderer as any).outputColorSpace = (THREE as any).SRGBColorSpace;
 
@@ -200,9 +207,13 @@ const ColorBends: React.FC<ColorBendsProps> = ({
     const handleResize = () => {
       const w = container.clientWidth || 1;
       const h = container.clientHeight || 1;
-      renderer.setPixelRatio(getPixelRatio());
-      renderer.setSize(w, h, false);
-      (material.uniforms.uCanvas.value as THREE.Vector2).set(w, h);
+      if (renderer) {
+        renderer.setPixelRatio(getPixelRatio());
+        renderer.setSize(w, h, false);
+      }
+      if (material && material.uniforms.uCanvas && material.uniforms.uCanvas.value) {
+        (material.uniforms.uCanvas.value as THREE.Vector2).set(w, h);
+      }
     };
 
     handleResize();
