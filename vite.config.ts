@@ -44,6 +44,7 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
+        'ws': path.resolve(__dirname, 'scripts/ws-shim.js'),
       }
     }
   };
